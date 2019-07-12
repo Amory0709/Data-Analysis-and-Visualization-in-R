@@ -1,0 +1,169 @@
+---
+title: "R learning from Data and Visual Analytics Lesson 4 Note"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(knitr)
+```
+
+
+# Start R
+Terminal type: R / R graphic application / R Studio/ 
+To quit: q()
+
+```{r}
+source("foo.R")
+ls()# list vriable names
+save.image(file = "xx") #saving variables to a file
+system("ls -al") # execute command in the shell list all file in curr dir
+```
+## Scalars
+```{r}
+#numeric
+a = 3.2; b= 3
+#integer
+c = as.integer(b)
+#logical
+d = TRUE
+#
+e = as.numeric(d)
+#string
+"hi"
+'hi'
+
+#factor
+#ordered Factor
+#unordered: factor( , order= False)
+```
+
+## Vector
+```{r}
+c()#concatenate
+length()#length of vector
+vector(mode = "logical", length = 4) #FALSE FALSE FALSE FALSE
+vector(length=3, mode = "numerical")# 0 0 0
+
+rep(3.2, times = 10)
+w = seq(0, 1, by=0.1) # 0.0 0.1 ... 1.0
+w = seq(0, 1, length.out = 11) # same as above
+
+#boolean vect
+w <= 0.5
+any(w <= 0.5) #True
+all(w <= 0.5) # False
+which(w <= 0.5) # 123456(indexes)
+
+# subset
+w[w<= 0.5]
+subset(w, w<= 0.5)
+w[w<=0.5] = 0
+```
+
+##array
+```{r}
+z = seq(1,20,length.out = 20)
+x = array(data = z, dim = c(4,5) )
+x
+```
+
+
+```{r}
+# Inner Product
+y = x[c(1,2),c(1,2)]
+y %*% y
+```
+
+```{r}
+#out product
+outer(x[,1], x[,1])
+```
+
+## concatenation
+```{r}
+rbind(x[1,],x[1,])
+```
+
+```{r}
+cbind(x[1,],x[1,])
+```
+
+```{r}
+#list
+L = list(name = 'John', age = 55, no.children = 2, children.ages = c(15,18))
+names(L)
+L['name']
+L[[2]]
+L$children.ages[2]
+L$name
+L[[4]][2]
+```
+
+```{r}
+#data frame
+vecn = c("John Smith", "Jane Doe")
+veca = c(42, 45)
+vecs = c(50000,55000)
+R = data.frame(name = vecn, age = veca, salary = vecs)
+```
+
+```{r}
+data("iris")
+dim(iris)
+names(iris)#col
+iris[c(1:4),]; head(iris,4)
+iris[1,]
+head(iris$Sepal.Length,10)
+attach(iris, warn.conflicts = F)
+mean(Sepal.Length)
+colMeans(iris[,1:4])
+subset(iris, Sepal.Length < 5 & Species == 'setosa')
+dim(subset(iris,Species == 'setosa'))[1]; length(iris[Species == 'setosa',])
+summary(iris)
+```
+
+```{r}
+# if else
+# loop
+for (num in seq(1,100,by=1)) {
+  
+}
+
+for (i in 1:100) {
+  
+}
+
+sum = 5050
+
+repeat{
+  sum = sum-num
+  num = num - 1
+  if(sum == 0) break
+}
+while (condition) {
+  
+}
+
+# function
+myPower = function(bas = 10, pow = 2){
+  res = bas^pow
+  return(res)
+}
+
+#vectorized code
+#instead of writing a loop, we are going to execute the same functionality without having a loop/loops in our code
+# dramatic accelaration
+a = 1: 10000000; res = 0
+system.time(for(e in a) res = res+e^2)
+system.time(sum(a^2))
+```
+
+```{r}
+# External / Native API  to solve bottleneck
+A = seq(0,1, length = 10)
+B = seq(0,1, length = 10)
+.Call("fooC",A,B)
+```
+

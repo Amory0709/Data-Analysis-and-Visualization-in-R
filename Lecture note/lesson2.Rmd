@@ -1,0 +1,29 @@
+---
+title: "R learning from Data and Visual Analytics Lesson 2 Note"
+output: html_notebook
+---
+
+```{r}
+reddit <- read.csv("C:/Users/S0047176/Desktop/DATA Analytics R/reddit.csv")
+str(reddit)
+library(ggplot2)
+qplot(data = reddit, x = age.range)
+```
+
+```{r}
+# for mac os
+
+# install.packages('devtools', dependencies = T)
+# library(devtools)
+# install_version("colorspace","1.2-4")
+```
+
+[Order factors](http://stats.idre.ucla.edu/r/modules/factor-variables/)
+```{r}
+reddit$age.range <- ordered(reddit$age.range, levels = c("Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65 or Above") )
+#or
+reddit$age.range <- factor(reddit$age.range, levels = c("Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65 or Above"), ordered = T )
+```
+
+## Data Munging
+[Data munging](https://flowingdata.com/2015/02/18/loading-data-and-basic-formatting-in-r/)

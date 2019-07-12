@@ -1,0 +1,81 @@
+---
+title: "R learning from Data and Visual Analytics Lesson 1 Note"
+output: html_notebook
+---
+
+```{r}
+data(iris)
+data("faithful")
+data(mtcars)
+```
+
+```{r}
+head(iris)
+levels(iris$Species)
+```
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+```
+The ggplot2 package provides the Fuel Economy (mpg), Midwest County Demographics (midwest) and Diamonds (diamonds) datasets. Once you have installed and loaded ggplot2, you can load the datasets using:
+```{r}
+data(mpg)
+data(midwest)
+data(diamonds)
+```
+
+```{r}
+install.packages("ggplot2movies")
+library(ggplot2movies)
+data(movies)
+```
+
+```{r}
+install.packages("plyr")
+library(plyr)
+data(baseball)
+data(ozone)
+```
+
+```{r}
+library(reshape2) #The reshape2 packages provides some handy functions that you can use to change the structure and format of your data, including the popular melt() function.
+data(tips)
+```
+
+The MASS package includes a library of advanced statistical modeling functions, and is usually pre-installed with R
+```{r}
+library(MASS)
+```
+
+```{r}
+#The robustHD package contains robust statistics and model selection methods for high-dimensional data:
+install.packages("robustHD")
+```
+
+WRS (optional)
+Certain functions in robustHD can be optimized using the WRS package (which depends on WRScpp).
+
+Note: Skip this library if you are getting an error during installation - it is not strictly required for robustHD.
+```{r}
+# First: Install dependent packages
+install.packages(c("MASS", "akima", "robustbase"))
+
+# Second: Install suggested packages
+install.packages(c("cobs", "robust", "mgcv", "scatterplot3d", "quantreg", "rrcov", "lars", "pwr", "trimcluster", "parallel", "mc2d", "psych", "Rfit"))
+
+# Third: Install an additional package which provides some C functions
+install.packages("devtools")
+library(devtools)
+install_github("mrxiaohe/WRScpp")  # or install_github("mrxiaohe/WRScppWin") for Windows
+
+# Fourth: Install WRS
+install_github("nicebread/WRS", subdir="pkg")
+```
+
+```{r}
+?tips
+head(tips)
+summary(tips)
+```
+
