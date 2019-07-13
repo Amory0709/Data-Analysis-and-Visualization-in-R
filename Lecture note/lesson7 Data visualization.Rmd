@@ -1,0 +1,250 @@
+---
+title: "Lesson 7"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+# Base graphic
+
+plot(x = ...,  y = ...)
+title(main = "figure title")
+```
+
+```{r}
+#ggplot2
+library(ggplot2)
+#option 1
+qplot(x = x1,
+      y = x2,
+      data = DF,
+      main = "figure title",
+      geom = "point")
+#ggplot2
+# Pass data frame col names through aes function
+#function and addition operator returns an object that can be printed or saved for later
+
+```
+
+
+```{r}
+rm(list = ls())
+data("faithful")
+#strip plot
+names(faithful)
+plot(faithful$eruptions, xlab = "sample number", ylab = "eruption times (min)", main = "Old Faithful Eruption Times")
+
+```
+```{r}
+#histgram
+#1
+qplot(x=waiting,
+      data = faithful,
+      binwidth = 3,
+      main = "Waiting time to next eruption (min)") #para order not matter 
+```
+
+```{r}
+#2
+ggplot(faithful, aes(x=waiting))+geom_histogram(binwidth = 1)
+```
+```{r}
+# y value replaced by probability/frequency
+ggplot(faithful, aes(x=waiting, y = ..density..))+geom_histogram(binwidth = 1)
+                                              
+```
+```{r}
+#line plot
+data("mtcars")
+names(mtcars)
+x = seq(-2,2,length.out = 30)
+y = x^2
+qplot(x,y,geom = "line")
+qplot(x,y,geom = c("point","line"))
+dataframe  = data.frame(x=x,y=y)
+ggplot(dataframe,aes(x=x,y=y))+geom_line()+geom_point()
+```
+
+```{r}
+#basic graphic package
+S = sort.int(mpg$cty, index.return = T)
+plot(S$x,# plot sort citympg with line plot
+     type = "l",
+     lty = 2,# solid/dashed
+     xlab = "sample number(sorted by city mpg)",
+     ylab = "mpg")
+lines(mpg$hwy[S$ix], lty = 1)# add dashed line of hwy mpg
+legend("topleft", c("highway mpg", "city mpg"), lty = c(1,2))
+```
+```{r}
+# smoothed histograms #!!!
+# approximate density
+# use kernel fuction
+# Tricube triangle uniform Gaussian
+# increase h, range will be larger
+
+```
+
+```{r}
+#
+ggplot(faithful, aes(x=waiting, y = ..density..))+geom_histogram(alpha = 0.3)+geom_density(size =1.5 , color ="red" )# smooth hist
+```
+
+```{r}
+#scatter plot
+#basic graph
+plot(faithful$waiting,
+     faithful$eruptions,
+     pch = 17,
+     col = 2,
+     cex = 1.2,
+     xlab = "waiting time (min)",
+     ylab = "eruption time (min)")
+```
+
+```{r}
+data(mtcars)
+data(mpg)
+require(GGally)
+#variable relationships and scatter plots
+plot(
+  mtcars$hp,#x
+  mtcars$mpg, #y
+  pch = mtcars$am,# determin the shape of the marker in the scatter plot, determine the market type
+  xlab = "horsepower",
+  cex = 1.2, # size of the marker
+  ylab = "miles per gallon",
+  main = "mpg vs hp by transmission")
+legend("topright",c("automatic","manual"),pch = c(0,1))
+
+```
+```{r}
+#multi vari scatter plot
+qplot(x = wt,
+      y = mpg,
+      data = mtcars,
+      size = cyl,
+      main = "MPG vs Weight by Cylinder")
+```
+```{r}
+#noisy data
+# sooth line
+names(mtcars)
+qplot(
+  disp,#x
+  mpg,#y
+  data = mtcars, main = "MPG vs Displacement"
+)+stat_smooth(method = "loess",# to compute
+              degree = 0,# smoothing operation 0 for regression
+              span = 0.2,
+              se = T #std err)
+```
+```{r}
+#facet
+# make graphic easier
+mtcars$amf[mtcars$am == 0] = 'automatic'
+mtcars$amf[mtcars$am == 1] = 'manual'
+mtcars$vsf[mtcars$vs == 0] = 'flat'
+mtcars$vsf[mtcars$vs == 1] = 'V-shape'
+
+qplot(
+  x=wt,
+  y=mpg,
+  facets = vsf~., # only 1 col "."indicate only 1 col
+  data=mtcars,
+  main = "MPG vs weight by engine"
+)
+
+qplot(
+  x=wt,
+  y=mpg,
+  facets = vsf~amf, # only 1 col "."indicate only 1 col
+  data=mtcars,
+  main = "MPG vs weight by engine"
+)
+```
+```{r}
+DF = mpg[,#select all rows
+         c('cty','hwy','displ')]
+library(GGally)
+ggpairs(DF)
+#diagram: smooth histogram
+
+```
+```{r}
+#contour plot
+#S1: grid for x
+#S2: grid for y
+#S3: expanded x by y grid
+#S4: compute values od z on the expanded grid
+
+x_grid = seq(-1,1,length.out = 100)
+y_grid = x_grid
+R = expand.grid(x_grid,y_grid)
+names(R) = c('x','y')
+R$z = R$x^2 + R$y^2
+ggplot(R,aes(x=x,y=y,z=z))+stat_contour()
+
+```
+```{r}
+#box plot
+# Median 50/50 in even
+# 25 Percentile 
+# IQR inter_quartile range 25-75
+ggplot(mpg, aes("",hwy))+
+  geom_boxplot()+
+  coord_flip()+# lying down not standing up
+  scale_x_discrete("")
+```
+
+```{r}
+ggplot(mpg,
+       aes(reorder(class,-hwy,median),hwy))+#reorder by increasing mpg using the median function 
+  geom_boxplot()+
+  coord_flip()+# lying down not standing up
+  scale_x_discrete("class")
+```
+```{r}
+#qqplot scatter plot
+# example code
+ggplot(R, aes(sample= samples))+
+  stat_qq(distribution = qt,#t distribution
+          dparams = pm) #parameters
+```
+
+```{r}
+D = data.frame(samples = c(rnorm(200,1,1),
+                           rnorm(200,0,1),
+                           rnorm(200,0,2)))
+D$parameter[1:200] = 'N(1,1)'
+D$parameter[201:400] = 'N(0,1)'
+D$parameter[401:600] = 'N(0,2)'
+qplot(samples,
+      facets = parameter~.,
+      geom = 'histogram',
+      data = D)
+```
+
+```{r}
+ggplot(D,aes(sample= samples))+stat_qq()+facet_grid(.~parameter)
+```
+```{r}
+x_grid = seq(-6,6,length.out = 200)
+R = data.frame(density = dnorm(x_grid,0,1))
+R$tdensity = dt(x_grid, 1.5)
+R$x = x_grid
+ggplot(R, aes(x=x,y=density))+
+  geom_area(fill=I('grey'))+
+  geom_line(aes(x=x,y=tdensity))+
+  labs(title = "t distribution vs Gaussian")
+```
+```{r}
+x_grid = seq(-6,6,length.out = 200)
+R = data.frame(density = dnorm(x_grid,0,1))
+R$samples = rnorm(200,0,1)
+pm = list(df=1.5)
+ggplot(R, aes(sample=samples))+
+  stat_qq(distribution = qt, dparams = pm)
+```
+
