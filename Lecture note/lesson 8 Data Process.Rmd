@@ -1,0 +1,387 @@
+---
+title: "Lesson 8 Data processing"
+output: html_notebook
+---
+
+Consider, for example, a survey recording gender, race,
+and income. Out of the three questions, gender and race are not very objectionable questions, so we assume for now that the survey respondents answer these
+questions fully. The income question is more sensitive and users may choose to
+not respond to for privacy reasons. The tendency to report income or to not report income typically varies from person to person. If it only depends on gender
+and race, then the data is MAR. If the decision whether to report income or not
+depends also on other variables that are not in the dataframe (such as age or
+profession), the data is not MAR.
+
+ Below are some general ways to convert missing data to non-missing data.
+• Remove all data instances (for example dataframe rows) containing missing
+values.
+• Replace all missing entries with a substitute value, for example the mean
+of the observed instances of the missing variable.
+• Estimate a probability model for the missing variable and replace the missing value with one or more samples from that probability model.(Imputation)
+In the case of MCAR, all three techniques above are reasonable in that they
+may not introduce systematic errors. Imputation > mean/median> remove
+
+In the more likely case of MAR or non-MAR
+data the methods above may introduce systematic bias into the data analysis
+process. For MAR, 1st and 2nd method introduce systematic bias, the 3rd one may or may not create sys bias depending on the model
+
+# load data and package
+```{r}
+rm(list = ls())
+library(ggplot2movies)
+data("movies")
+
+require(plyr)
+data(baseball)
+data(ozone)
+
+require(ggplot2)
+data("diamonds")
+
+require(robustHD)
+library(MASS)
+library(reshape2)
+data(tips)
+```
+# handling missing Data
+```{r}
+mean(movies$length)
+mean(movies$budget)
+mean(movies$budget, na.rm = TRUE)
+mean(is.na(movies$budget))# frequency of missing budget
+movieNoNA = na.omit(movies)
+qplot(rating, budget, data = moviesNoNA, size = I(1.2)) +
+stat_smooth(color = "red", size = I(2), se = F)
+```
+
+# Outliers
+
+```{r}
+#install.packages("Ecdat")
+library(Ecdat)
+data(SP500, package = 'Ecdat')
+qplot(r500,
+main = "Histogram of log(P(t)/P(t-1)) for SP500 (1981-91)",
+xlab = "log returns",
+data = SP500)
+
+qplot(seq(along = r500),
+r500,
+data = SP500,
+geom = "line",
+xlab = "trading days since January 1981",
+ylab = "log returns",
+main = "log(P(t)/P(t-1)) for SP500 (1981-91)")
+```
+Robustness describes a lack of sensitivity of data analysis procedures to outliers.
+Precision(uncertainty) ： deviation of the data from the mean
+bias of the outlier: it could be system error if the data is corrupted 
+
+### Deal with outliers
+
+- Truncating: Remove all values deemed as outliers
+
+
+- Winsorization: Shrink outliers to border of main part of data
+ replaces the outliers with the most extreme data points that remain after removing the outliers 
+
+
+- Robustness: Analyze the data using a robust procedure
+   e.g choose median over mean
+
+### Detect outliers
+Definition: 
+- values below the alpha percentile or above the 100-alpha percentile (alpha = 5,2,1...)
+- values more than c times standard deviation away from the mean (Assume Gaussian Distribution)
+    But the mean and deviation are affected by outliers
+    to fix this: compute the mean and standard dev after removing the most extreme values
+    Or use percentile
+```{r}
+# Winsorize data
+require("robustHD")
+#install.packages("robustHD")
+originalData = c(1000, rnorm(10))
+print(originalData[1:5])
+
+print(winsorize(originalData[1:5]))
+```
+```{r}
+# Std mean
+original_data = rnorm(20)
+original_data[1] = 1000
+sorted_data = sort(original_data)
+filter_data = sorted_data[3:18]
+lower_limit = mean(filter_data) - 5 * sd(filter_data)
+upper_limit = mean(filter_data) + 5 * sd(filter_data)
+not_outlier_ind = (lower_limit < original_data) & (original_data < upper_limit)
+print(not_outlier_ind)
+data_w_no_outliers = original_data[not_outlier_ind]
+data_w_no_outliers
+
+
+```
+
+## Skewness and Power Transformation
+In many cases, data is drawn from a highly-skewed distribution that is not well
+described by one of the common statistical distributions. In some of these cases,
+a simple transformation may map the data to a form that is well described by
+common distributions, such as the Gaussian or Gamma distributions
+
+The power transform maps x to x^lambda up to multiplication by a constant and addition of a constant
+lambda > 1 mapping is convex removes left skewness
+lambda < 1 mapping is concave removes right skewness
+subtracting 1 and dividing by lambda makes f-lambda(x) continuous in lambda as well as in x
+
+### select lambda
+- try different values
+- maximum likelihood
+
+```{r}
+data("diamonds")
+diamondSubset = diamonds[sample(dim(diamonds)[1],1000),] # subset of 1000 diamonds
+qplot(price, data = diamondSubset)
+```
+```{r}
+qplot(log(price),size = I(1), data = diamondSubset)
+```
+increase --> decrease --> increase
+```{r}
+qplot(carat,
+      price,
+      size = I(1),
+      data = diamondSubset)
+
+qplot(log(carat),
+      price,
+      size = I(1),
+      data = diamondSubset)
+
+qplot(carat,
+      log(price),
+      size = I(1),
+      data = diamondSubset)
+
+qplot(log(carat),
+      log(price),
+      size = I(1),
+      data = diamondSubset)
+
+qplot(carat,
+      price,
+      log = "xy",
+      size = I(1),
+      data = diamondSubset)
+```
+
+### Binning/discretization
+take num into several bins 
+Binarizatin: 0 or 1
+use function "cut"
+
+it is often useful to bin values in order to accomplish data reduction, improve scalability for
+big-data, or capture non-linear e↵ects in linear models.
+  
+### indicator variables
+Indicator vectors refers to a technique that replaces a variable x (numeric, ordinal,
+or categorical) taking k values with a binary k-dimensional vector v, such that
+v[i] (or vi in mathematical notation) is one if and only if x takes on the i-value
+in its range. Thus, the variable is replaced by a vector that is all zeros, except
+for one component that equals one corresponding to the variable value. Often,
+indicator variables are used in conjunction with binning as follows: first bin the
+variable into k bins and then create a k dimensional indicator variable. The
+resulting vector may have high dimension, but it may be easily handled using
+computational routines that take advantage of its extreme sparsity.
+
+# Shuffling
+```{r}
+D = array(data = seq(1,20,length.out = 20), dim = c(4,5))
+D
+D_shuffled = D[sample(4,4),]# shuffle by row
+# sample(k,k) generates a random permutation of order k
+D_shuffled
+```
+# Partitioning
+```{r}
+D = array(data = seq(1,20,length.out = 20), dim = c(4,5))
+rand_perm = sample(4,4)
+first_set_of_indices = rand_perm[1:floor(4*0.75)]
+second_set_of_indices = rand_perm[floor(4*0.75):4]
+D1 = D[first_set_of_indices,]
+D2 = D[second_set_of_indices, ]
+```
+
+# Tall data
+Data in tall format is an array or dataframe containing multiple columns where
+one or more columns act as a unique identifier and an additional column represents value. 
+
+harder to analyze
+simpler to add/remove entries
+
+2015/01/01 apples 200
+2015/01/01 oranges 150
+2015/01/02 apples 220
+2015/01/02 oranges 130
+
+# Wide data
+Wide data represents the same information as tall data, but may represent
+in multiple columns the information that tall data holds in multiple rows.
+
+simpler to analyze
+jarder to add/remove entries
+
+Date apples oranges
+--------------------------
+2015/01/01 200 150
+2015/01/02 220 130
+
+#### When converting tall data to wide data, we need to specify ID variables that define the row and column structure(date and item in the example above)
+
+# reshaping data
+convert data between tall and wide 
+```{r}
+print(smiths)
+smiths_tall = melt(smiths, id = 1) # first column as unique identifier
+print(smiths_tall)
+
+#inverse of melt
+?acast # returns array
+?dcast # returns df
+```
+### smoker- tip example
+```{r}
+tips
+tipsm = melt(tips, id=c("sex","smoker","day","time","size"));tipsm
+dcast(tipsm, #mean of measurement varibales broken by sex
+      sex~variable,
+      fun.aggregate = mean)
+```
+```{r}
+# Number of occurences for measurement variables broken by sex
+dcast(tipsm, 
+      sex~variable,
+      fun.aggregate = length)
+```
+
+```{r}
+# similar to above with breakdown for sex and time:
+dcast(tipsm, 
+      sex+time~variable,
+      fun.aggregate = length)
+```
+
+```{r}
+# similar to above, but with mean and added margins
+dcast(tipsm, 
+      sex+time~variable,
+      fun.aggregate = mean,
+      margins = TRUE)
+
+dcast(tipsm, 
+      sex+time~variable,
+      fun.aggregate = length,
+      margins = TRUE)
+```
+
+# Split- Apply - Combine
+## plyr
+
+output             array dataframe list discarded
+----------------------------------------------------
+input
+array               aaply adply alply a_ply
+dataframe           daply ddply dlply d_ply
+list                laply ldply llply l_ply
+
+
+The first argument in each of these functions is the data stored as an array,
+dataframe, or list depending on the input type in the table above. The second
+argument of the a*ply functions1, called .margins, determines the dimensions
+that are used to split the data. A value of 1 implies splitting by rows. A value of
+2 implies splitting into columns, and so forth. A combination value may also be
+used, for example c(1,2) splits the data into a combination of rows and columns.
+The second argument of the d*ply functions, called .variables, determines
+the dataframe columns (multiple columns are allowed) that are used to split the
+data. Since there is only one way to split a list there is no corresponding argument
+for the l*ply functions. For all functions the argument .fun determines which
+function to execute in the apply stage.
+
+```{r}
+library(plyr)
+head(baseball)
+
+# count number of players recorded for each year
+bbPerYear = ddply(baseball, "year", "nrow")
+head(bbPerYear)
+```
+
+```{r}
+qplot(x=year, y=nrow,
+      data = bbPerYear, geom = "line",
+      ylab = "num of player seasons")
+```
+
+```{r}
+# compute mean rbi (batting attempt resulting in runs)
+# for all years. Summarize is the apply function, which
+# takes as argument a function that computes the rbi mean
+bbMod=ddply(baseball,
+"year",
+summarise,
+mean.rbi = mean(rbi, na.rm = TRUE))
+head(bbMod)
+```
+
+```{r}
+qplot(x = year,
+y = mean.rbi,
+data = bbMod,
+geom = "line",
+ylab = "mean RBI")
+```
+```{r}
+# add a column career.year which measures the number of years passed
+# since each player started batting
+bbMod2 = ddply(baseball,
+"id",
+transform,
+career.year = year - min(year) + 1)
+# sample a random subset 3000 rows to avoid over-plotting
+bbSubset = bbMod2[sample(dim(bbMod2)[1], 3000),]
+qplot(career.year,
+rbi, data = bbSubset,
+size = I(0.8),
+geom = "jitter",
+ylab = "RBI",
+xlab = "years of playing") +
+geom_smooth(color = "red", se = F, size = 1.5)
+```
+
+```{r}
+library(plyr)
+dim(ozone)
+## [1] 24 24 72
+latitude.mean = aaply(ozone, 1, mean)# split by first column
+longitude.mean = aaply(ozone, 2, mean)
+time.mean = aaply(ozone, 3, mean)
+longitude = seq(along = longitude.mean)
+qplot(x = longitude,
+y = longitude.mean,
+ylab = "mean ozone level",
+geom = "line")
+```
+```{r}
+latitude = seq(along = latitude.mean)
+qplot(x = latitude,
+y = latitude.mean,
+ylab = "mean ozone level",
+geom = "line")
+```
+
+```{r}
+months = seq(along = time.mean)
+qplot(x = months,
+y = time.mean,
+geom = "line",
+ylab = "mean ozone level",
+xlab = "months since January 1985")
+```
+
